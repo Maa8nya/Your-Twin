@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Digital Twin of Yourself{% endblock %}</title>
-    <meta name="description" content="Digital Twin of Yourself - a futuristic twin lab for behavioral decision modeling.">
+    <meta name="description" content="Digital Twin of Yourself - a futuristic digital twin for behavioral decision modeling.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
@@ -19,7 +19,7 @@
     <div class="loader-overlay" id="loaderOverlay" aria-hidden="true">
         <div class="loader-panel glass-card">
             <div class="loader-ring"></div>
-            <p>Calibrating Twin Lab systems...</p>
+            <p>Calibrating Your Twin systems...</p>
         </div>
     </div>
 
@@ -28,8 +28,8 @@
             <a class="brand" href="{{ url_for('home') }}">
                 <img src="{{ url_for('static', filename='img/logo.png') }}" class="logo">
                 <span class="brand-copy">
-                    <strong>Twin Lab</strong>
-                    <small>Behavioral Command Console</small>
+                    <strong>Your Twin</strong>
+                    <small>Cognitive Digital Twin Interface</small>
                 </span>
             </a>
 
@@ -40,7 +40,7 @@
             <nav class="site-nav" data-nav-menu>
                 <a class="{% if active_page == 'home' %}active{% endif %}" href="{{ url_for('home') }}">Home</a>
                 <a class="{% if active_page == 'overview' %}active{% endif %}" href="{{ url_for('overview') }}">Overview</a>
-                <a class="{% if active_page == 'methodology' %}active{% endif %}" href="{{ url_for('methodology') }}">Methodology</a>
+                <a class="{% if active_page == 'Twin Intelligence Engine' %}active{% endif %}" href="{{ url_for('methodology') }}">Twin Intelligence Engine</a>
                 <a class="{% if active_page == 'assessment' %}active{% endif %}" href="{{ url_for('assessment') }}">Assessment</a>
                 <a class="{% if active_page == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">Dashboard</a>
                 <a class="{% if active_page == 'scenarios' %}active{% endif %}" href="{{ url_for('scenarios') }}">Scenarios</a>
@@ -65,13 +65,13 @@
     <footer class="site-footer">
         <div class="container footer-grid">
             <div>
-                <div class="footer-brand">DT</div>
+                <div class="footer-brand">YT</div>
                 <p>Digital Twin of Yourself is designed as a futuristic behavioral simulation experience for research, reflection, and presentation.</p>
             </div>
             <div>
                 <h4>Explore</h4>
                 <a href="{{ url_for('overview') }}">Concept overview</a>
-                <a href="{{ url_for('methodology') }}">Scoring methodology</a>
+                <a href="{{ url_for('methodology') }}">Twin Intelligence Engine</a>
                 <a href="{{ url_for('assessment') }}">Start assessment</a>
             </div>
             <div>

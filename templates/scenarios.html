@@ -1,20 +1,170 @@
 {% extends "base.html" %}
-{% block title %}Digital Twin of Yourself | Scenarios{% endblock %}
+
+{% block title %}
+Scenario Simulation
+{% endblock %}
 
 {% block content %}
-<section class="page-hero container reveal">
-    <span class="eyebrow">Scenarios</span>
-    <h1>Predictive scenarios based on your answers</h1>
-    <p>These outcomes are not absolute predictions. They are narrative simulations derived from your behavioral profile.</p>
+
+<section class="container section-pad">
+
+    <div class="glass-card scenario-console">
+
+        <div class="scenario-header">
+
+            <span class="scenario-badge">
+                AI Simulation Engine
+            </span>
+
+            <h1>
+                Future Behavioral Simulation
+            </h1>
+
+            <p>
+                Explore how your Digital Twin reacts
+                in complex real-world situations.
+            </p>
+
+        </div>
+
+        <div class="scenario-grid-new">
+
+    <div class="scenario-option active"
+         onclick="selectScenario(this)"
+         data-scenario="Work Failure">
+
+        <h3>Work Failure</h3>
+
+        <p>
+            Simulate response under business collapse.
+        </p>
+
+    </div>
+
+    <div class="scenario-option"
+         onclick="selectScenario(this)"
+         data-scenario="Leadership Crisis">
+
+        <h3>Leadership Crisis</h3>
+
+        <p>
+            Analyze leadership pressure handling.
+        </p>
+
+    </div>
+
+    <div class="scenario-option"
+         onclick="selectScenario(this)"
+         data-scenario="Financial Collapse">
+
+        <h3>Financial Collapse</h3>
+
+        <p>
+            Predict stability during economic stress.
+        </p>
+
+    </div>
+
+    <div class="scenario-option"
+         onclick="selectScenario(this)"
+         data-scenario="Relationship Conflict">
+
+        <h3>Relationship Conflict</h3>
+
+        <p>
+            Simulate emotional decision-making patterns.
+        </p>
+
+    </div>
+
+    <div class="scenario-option"
+         onclick="selectScenario(this)"
+         data-scenario="Unexpected Success">
+
+        <h3>Unexpected Success</h3>
+
+        <p>
+            Analyze reaction to rapid achievement.
+        </p>
+
+    </div>
+
+    <div class="scenario-option"
+         onclick="selectScenario(this)"
+         data-scenario="Public Speaking Pressure">
+
+        <h3>Public Speaking Pressure</h3>
+
+        <p>
+            Evaluate confidence under social attention.
+        </p>
+
+    </div>
+
+</div>
+
+<button class="ai-btn"
+        onclick="runSimulation()">
+
+    <span class="ai-glow"></span>
+
+    <span class="ai-text">
+        Run Simulation
+    </span>
+
+</button>
+
+        <div id="scenario-result"
+             class="ai-report-card">
+
+            Waiting for simulation...
+
+        </div>
+
+    </div>
+
 </section>
 
-<section class="container section-pad scenario-grid">
-    {% for scenario in profile.scenarios %}
-        <article class="glass-card scenario-card reveal">
-            <span class="scenario-kicker">Scenario {{ loop.index }}</span>
-            <h3>{{ scenario.title }}</h3>
-            <p>{{ scenario.body }}</p>
-        </article>
-    {% endfor %}
-</section>
+{% endblock %}
+
+{% block scripts %}
+
+<<script>
+
+let selectedScenario = "Work Failure";
+
+function selectScenario(card){
+
+    document
+        .querySelectorAll(".scenario-option")
+        .forEach(el => el.classList.remove("active"));
+
+    card.classList.add("active");
+
+    selectedScenario =
+        card.dataset.scenario;
+}
+
+async function runSimulation(){
+
+    document.getElementById(
+        "scenario-result"
+    ).innerHTML =
+        "Running Digital Twin simulation...";
+
+    const response =
+        await fetch(
+            `/simulate-scenario?scenario=${selectedScenario}`
+        );
+
+    const data = await response.json();
+
+    document.getElementById(
+        "scenario-result"
+    ).innerHTML =
+        data.result;
+}
+
+</script>
+
 {% endblock %}

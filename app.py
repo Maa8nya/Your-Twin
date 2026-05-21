@@ -4,8 +4,12 @@ import os
 from collections import defaultdict
 from typing import Any
 
+from click import prompt
 from dotenv import load_dotenv
 from flask import Flask, flash, redirect, render_template, request, session, url_for
+
+from google import genai
+from flask import jsonify
 
 
 load_dotenv()
@@ -15,7 +19,9 @@ app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "digital-twin-demo-secret-key")
 app.config["SESSION_COOKIE_SAMESITE"] = os.getenv("SESSION_COOKIE_SAMESITE", "Lax")
 
-
+client = genai.Client(
+    api_key="AIzaSyD-iIJe2cSMA8Rm73Ut4tHzNel1_khRPPA"
+)
 DIMENSIONS = {
     "introversion_extroversion": {
         "low": "Introverted",
@@ -73,247 +79,335 @@ def radio_question(question_id: int, section: str, text: str, options: list[dict
 
 
 QUESTIONS: list[dict[str, Any]] = [
+
+    # =====================================================
+    # HABITS & ROUTINE
+    # =====================================================
+
     radio_question(
         1,
         "Habits & Routine",
-        "How strictly do you follow a daily routine?",
+        "How do you usually begin your day?",
         [
-            {"label": "Very flexible", "scores": {"planning_spontaneity": -12, "risk_level": 2}},
-            {"label": "Somewhat flexible", "scores": {"planning_spontaneity": -6, "risk_level": 1}},
-            {"label": "Balanced", "scores": {"planning_spontaneity": 0, "risk_level": 0}},
-            {"label": "Mostly structured", "scores": {"planning_spontaneity": 7, "risk_level": -1}},
-            {"label": "Strictly structured", "scores": {"planning_spontaneity": 12, "risk_level": -3}},
+            {"label": "With a structured plan", "scores": {"planning_spontaneity": 12}},
+            {"label": "With a rough idea of tasks", "scores": {"planning_spontaneity": 6}},
+            {"label": "Depends on the day", "scores": {"planning_spontaneity": 0}},
+            {"label": "I decide things spontaneously", "scores": {"planning_spontaneity": -8}},
+            {"label": "I completely go with the flow", "scores": {"planning_spontaneity": -12}},
         ],
     ),
+
     radio_question(
         2,
         "Habits & Routine",
-        "How many hours of sleep do you typically get?",
+        "When your plans suddenly change, how do you react?",
         [
-            {"label": "Less than 4 hours", "scores": {"planning_spontaneity": -8, "logical_emotional": -6}},
-            {"label": "4–6 hours", "scores": {"planning_spontaneity": -4, "logical_emotional": -3}},
-            {"label": "6–8 hours", "scores": {"planning_spontaneity": 6, "logical_emotional": 5}},
-            {"label": "8–10 hours", "scores": {"planning_spontaneity": 4, "logical_emotional": 3}},
-            {"label": "More than 10 hours", "scores": {"planning_spontaneity": -2, "logical_emotional": -2}},
+            {"label": "Adapt calmly", "scores": {"logical_emotional": 10}},
+            {"label": "Feel stressed but adjust", "scores": {"logical_emotional": -2}},
+            {"label": "Enjoy the unpredictability", "scores": {"risk_level": 8}},
+            {"label": "Feel frustrated immediately", "scores": {"logical_emotional": -8}},
+            {"label": "Need time to mentally adjust", "scores": {"planning_spontaneity": 4}},
         ],
     ),
-    radio_question(
+
+    scale_question(
         3,
         "Habits & Routine",
-        "Do you exercise regularly?",
-        [
-            {"label": "Yes, I do", "scores": {"planning_spontaneity": 5, "introversion_extroversion": 3}},
-            {"label": "No, I don’t", "scores": {"planning_spontaneity": -2, "introversion_extroversion": -1}},
-        ],
+        "How consistent are your daily habits? (1–10 scale)",
+        {
+            "planning_spontaneity": {"direction": 1, "weight": 14}
+        },
+        "Very inconsistent",
+        "Highly consistent",
     ),
+
     radio_question(
         4,
         "Habits & Routine",
-        "How often do you plan your week in advance?",
+        "How do you handle deadlines?",
         [
-            {"label": "Never", "scores": {"planning_spontaneity": -14}},
-            {"label": "Rarely", "scores": {"planning_spontaneity": -8}},
-            {"label": "Sometimes", "scores": {"planning_spontaneity": -1}},
-            {"label": "Usually", "scores": {"planning_spontaneity": 8}},
-            {"label": "Always", "scores": {"planning_spontaneity": 14}},
+            {"label": "Finish tasks early", "scores": {"planning_spontaneity": 12}},
+            {"label": "Work steadily over time", "scores": {"planning_spontaneity": 8}},
+            {"label": "Need pressure to work efficiently", "scores": {"risk_level": 4}},
+            {"label": "Often procrastinate", "scores": {"planning_spontaneity": -10}},
+            {"label": "Completely improvise at the last moment", "scores": {"planning_spontaneity": -14}},
         ],
     ),
-    radio_question(
+
+    scale_question(
         5,
         "Habits & Routine",
-        "How productive do you feel in mornings vs evenings?",
-        [
-            {"label": "Much more productive in mornings", "scores": {"planning_spontaneity": 10, "logical_emotional": 4}},
-            {"label": "Slightly more productive in mornings", "scores": {"planning_spontaneity": 5, "logical_emotional": 2}},
-            {"label": "Same throughout the day", "scores": {"planning_spontaneity": 0, "logical_emotional": 0}},
-            {"label": "Slightly more productive in evenings", "scores": {"planning_spontaneity": -4, "logical_emotional": -2}},
-            {"label": "Much more productive in evenings", "scores": {"planning_spontaneity": -8, "logical_emotional": -4}},
-        ],
+        "How organized is your lifestyle? (1–10 scale)",
+        {
+            "planning_spontaneity": {"direction": 1, "weight": 12}
+        },
+        "Very disorganized",
+        "Highly organized",
     ),
-    scale_question(
+
+    # =====================================================
+    # VALUES
+    # =====================================================
+
+    radio_question(
         6,
         "Values",
-        "How important is financial security in your life decisions? (1–10 scale)",
-        {"risk_level": {"direction": -1, "weight": 12}, "planning_spontaneity": {"direction": 1, "weight": 8}},
-        "Not important",
-        "Extremely important",
+        "What motivates you the most in life?",
+        [
+            {"label": "Achievement and success", "scores": {"logical_emotional": 8}},
+            {"label": "Freedom and independence", "scores": {"risk_level": 10}},
+            {"label": "Security and stability", "scores": {"planning_spontaneity": 12}},
+            {"label": "Relationships and belonging", "scores": {"introversion_extroversion": 10}},
+            {"label": "Growth and learning", "scores": {"logical_emotional": 6, "risk_level": 4}},
+        ],
     ),
+
     radio_question(
         7,
         "Values",
-        "Would you take a pay cut to do work you find more meaningful?",
+        "Would you choose passion over financial stability?",
         [
-            {"label": "Yes, I would", "scores": {"logical_emotional": -4, "risk_level": 5}},
-            {"label": "No, I wouldn’t", "scores": {"logical_emotional": 3, "planning_spontaneity": 4}},
+            {"label": "Definitely yes", "scores": {"risk_level": 10}},
+            {"label": "Probably yes", "scores": {"risk_level": 6}},
+            {"label": "Depends on the situation", "scores": {"logical_emotional": 4}},
+            {"label": "Probably not", "scores": {"planning_spontaneity": 6}},
+            {"label": "Definitely not", "scores": {"planning_spontaneity": 12}},
         ],
     ),
+
     scale_question(
         8,
         "Values",
-        "How important is family in guiding your major life decisions? (1–10 scale)",
-        {"introversion_extroversion": {"direction": 1, "weight": 8}, "planning_spontaneity": {"direction": 1, "weight": 4}},
-        "Low influence",
-        "Very high influence",
+        "How important is long-term stability in your life decisions? (1–10 scale)",
+        {
+            "planning_spontaneity": {"direction": 1, "weight": 14},
+            "risk_level": {"direction": -1, "weight": 8}
+        },
+        "Not important",
+        "Extremely important",
     ),
+
     radio_question(
         9,
         "Values",
-        "Which value matters most to you?",
+        "Which matters more to you?",
         [
-            {"label": "Freedom & Autonomy", "scores": {"risk_level": 5, "planning_spontaneity": -2}},
-            {"label": "Security & Stability", "scores": {"planning_spontaneity": 12, "risk_level": -8}},
-            {"label": "Achievement & Success", "scores": {"logical_emotional": 7, "planning_spontaneity": 4}},
-            {"label": "Connection & Belonging", "scores": {"introversion_extroversion": 10, "logical_emotional": 2}},
-            {"label": "Growth & Learning", "scores": {"risk_level": 4, "logical_emotional": 6, "planning_spontaneity": 2}},
+            {"label": "Personal happiness", "scores": {"logical_emotional": -2}},
+            {"label": "Career growth", "scores": {"planning_spontaneity": 6}},
+            {"label": "Financial success", "scores": {"risk_level": -2}},
+            {"label": "Strong relationships", "scores": {"introversion_extroversion": 8}},
+            {"label": "Freedom to explore life", "scores": {"risk_level": 8}},
         ],
     ),
+
     scale_question(
         10,
         "Values",
-        "How much does social recognition affect your decisions? (1–10 scale)",
-        {"introversion_extroversion": {"direction": 1, "weight": 10}, "planning_spontaneity": {"direction": 1, "weight": 2}},
+        "How much do other people’s opinions affect your decisions? (1–10 scale)",
+        {
+            "introversion_extroversion": {"direction": 1, "weight": 8},
+            "logical_emotional": {"direction": -1, "weight": 4}
+        },
         "Not at all",
-        "A great deal",
+        "Very strongly",
     ),
-    scale_question(
+
+    # =====================================================
+    # RISK & UNCERTAINTY
+    # =====================================================
+
+    radio_question(
         11,
         "Risk & Uncertainty",
-        "How comfortable are you with financial uncertainty? (1–10 scale)",
-        {"risk_level": {"direction": 1, "weight": 14}, "planning_spontaneity": {"direction": -1, "weight": 6}},
+        "You receive a risky opportunity with high rewards. What do you do?",
+        [
+            {"label": "Take it immediately", "scores": {"risk_level": 14}},
+            {"label": "Research before deciding", "scores": {"logical_emotional": 12}},
+            {"label": "Seek advice from others", "scores": {"introversion_extroversion": 6}},
+            {"label": "Avoid the risk completely", "scores": {"risk_level": -12}},
+            {"label": "Take a smaller safer version of the risk", "scores": {"risk_level": 4}},
+        ],
+    ),
+
+    scale_question(
+        12,
+        "Risk & Uncertainty",
+        "How comfortable are you with uncertainty? (1–10 scale)",
+        {
+            "risk_level": {"direction": 1, "weight": 14}
+        },
         "Very uncomfortable",
         "Very comfortable",
     ),
-    radio_question(
-        12,
-        "Risk & Uncertainty",
-        "Would you quit a stable job to pursue your passion without a backup plan?",
-        [
-            {"label": "Yes, I would", "scores": {"risk_level": 14, "planning_spontaneity": -6, "logical_emotional": -4}},
-            {"label": "No, I wouldn’t", "scores": {"risk_level": -12, "planning_spontaneity": 8, "logical_emotional": 6}},
-        ],
-    ),
+
     radio_question(
         13,
         "Risk & Uncertainty",
-        "How do you typically approach major decisions?",
+        "How do you react when things don't go according to plan?",
         [
-            {"label": "Gather all information before deciding", "scores": {"logical_emotional": 12, "planning_spontaneity": 8}},
-            {"label": "Weigh pros and cons carefully", "scores": {"logical_emotional": 10, "planning_spontaneity": 10}},
-            {"label": "Go with gut feeling", "scores": {"logical_emotional": -8, "risk_level": 4}},
-            {"label": "Seek advice from others", "scores": {"introversion_extroversion": 8, "planning_spontaneity": 2}},
-            {"label": "Decide quickly and adjust later", "scores": {"risk_level": 6, "planning_spontaneity": -10}},
+            {"label": "Stay calm and solve the issue", "scores": {"logical_emotional": 12}},
+            {"label": "Feel anxious but adapt", "scores": {"logical_emotional": -2}},
+            {"label": "Act quickly without overthinking", "scores": {"risk_level": 8}},
+            {"label": "Overthink the situation", "scores": {"planning_spontaneity": 6}},
+            {"label": "Seek emotional support", "scores": {"introversion_extroversion": 6}},
         ],
     ),
-    scale_question(
+
+    radio_question(
         14,
         "Risk & Uncertainty",
-        "How much research do you do before making a big purchase? (1–10 scale)",
-        {"planning_spontaneity": {"direction": 1, "weight": 12}, "logical_emotional": {"direction": 1, "weight": 8}},
-        "Very little",
-        "Extensive research",
+        "Would you relocate alone to a completely new city for growth?",
+        [
+            {"label": "Definitely yes", "scores": {"risk_level": 12}},
+            {"label": "Probably yes", "scores": {"risk_level": 6}},
+            {"label": "Only if necessary", "scores": {"planning_spontaneity": 4}},
+            {"label": "Probably not", "scores": {"risk_level": -6}},
+            {"label": "Definitely not", "scores": {"risk_level": -12}},
+        ],
     ),
+
     scale_question(
         15,
         "Risk & Uncertainty",
-        "How often do you try new things outside your comfort zone? (1–10 scale)",
-        {"risk_level": {"direction": 1, "weight": 12}, "introversion_extroversion": {"direction": 1, "weight": 6}},
+        "How often do you step outside your comfort zone? (1–10 scale)",
+        {
+            "risk_level": {"direction": 1, "weight": 12}
+        },
         "Rarely",
         "Very often",
     ),
-    scale_question(
+
+    # =====================================================
+    # SOCIAL & RELATIONSHIPS
+    # =====================================================
+
+    radio_question(
         16,
         "Social & Relationships",
-        "Do you find social interactions energizing or draining? (1–10 scale)",
-        {"introversion_extroversion": {"direction": 1, "weight": 14}},
-        "Draining",
-        "Energizing",
+        "At a social gathering, you usually:",
+        [
+            {"label": "Talk to many people confidently", "scores": {"introversion_extroversion": 14}},
+            {"label": "Interact with a few people", "scores": {"introversion_extroversion": 4}},
+            {"label": "Observe before interacting", "scores": {"logical_emotional": 4}},
+            {"label": "Prefer staying quiet", "scores": {"introversion_extroversion": -8}},
+            {"label": "Avoid interaction completely", "scores": {"introversion_extroversion": -14}},
+        ],
     ),
+
     radio_question(
         17,
         "Social & Relationships",
-        "Do you prefer working alone or in a team?",
+        "How do you usually handle conflicts?",
         [
-            {"label": "Strongly prefer working alone", "scores": {"introversion_extroversion": -14}},
-            {"label": "Prefer working alone", "scores": {"introversion_extroversion": -8}},
-            {"label": "No preference", "scores": {"introversion_extroversion": 0}},
-            {"label": "Prefer working in a team", "scores": {"introversion_extroversion": 8}},
-            {"label": "Strongly prefer working in a team", "scores": {"introversion_extroversion": 14}},
+            {"label": "Address it calmly and directly", "scores": {"logical_emotional": 10}},
+            {"label": "Avoid conflict if possible", "scores": {"introversion_extroversion": -4}},
+            {"label": "Get emotional during arguments", "scores": {"logical_emotional": -10}},
+            {"label": "Try to understand both sides", "scores": {"logical_emotional": 8}},
+            {"label": "Need time alone before responding", "scores": {"introversion_extroversion": -2}},
         ],
     ),
-    radio_question(
+
+    scale_question(
         18,
         "Social & Relationships",
-        "Would you cancel plans to help a friend in need?",
-        [
-            {"label": "Yes, I would", "scores": {"introversion_extroversion": 8, "logical_emotional": -2}},
-            {"label": "No, I wouldn’t", "scores": {"planning_spontaneity": 4, "logical_emotional": 2}},
-        ],
+        "How energized do you feel after social interaction? (1–10 scale)",
+        {
+            "introversion_extroversion": {"direction": 1, "weight": 14}
+        },
+        "Very drained",
+        "Very energized",
     ),
-    scale_question(
+
+    radio_question(
         19,
         "Social & Relationships",
-        "How important is having a large social circle to you? (1–10 scale)",
-        {"introversion_extroversion": {"direction": 1, "weight": 12}},
-        "Not important",
-        "Very important",
+        "What role do you usually take in a team?",
+        [
+            {"label": "Leader", "scores": {"introversion_extroversion": 12}},
+            {"label": "Planner/strategist", "scores": {"logical_emotional": 10}},
+            {"label": "Supportive contributor", "scores": {"introversion_extroversion": 4}},
+            {"label": "Independent worker", "scores": {"introversion_extroversion": -8}},
+            {"label": "Observer", "scores": {"introversion_extroversion": -12}},
+        ],
     ),
+
     scale_question(
         20,
         "Social & Relationships",
-        "How comfortable are you speaking in front of a group? (1–10 scale)",
-        {"introversion_extroversion": {"direction": 1, "weight": 10}, "risk_level": {"direction": 1, "weight": 4}},
-        "Very uncomfortable",
-        "Very comfortable",
+        "How important are close relationships in your life? (1–10 scale)",
+        {
+            "introversion_extroversion": {"direction": 1, "weight": 10}
+        },
+        "Not important",
+        "Extremely important",
     ),
+
+    # =====================================================
+    # DECISION MAKING
+    # =====================================================
+
     radio_question(
         21,
         "Decision Making",
-        "How long does it typically take you to make an important decision?",
+        "How do you usually make important decisions?",
         [
-            {"label": "Instantly", "scores": {"planning_spontaneity": -14, "risk_level": 6}},
-            {"label": "A few minutes", "scores": {"planning_spontaneity": -8, "risk_level": 4}},
-            {"label": "A few hours", "scores": {"planning_spontaneity": 0, "logical_emotional": 2}},
-            {"label": "A few days", "scores": {"planning_spontaneity": 8, "logical_emotional": 8}},
-            {"label": "Weeks or more", "scores": {"planning_spontaneity": 14, "logical_emotional": 10}},
+            {"label": "Analyze all available information", "scores": {"logical_emotional": 14}},
+            {"label": "Trust intuition", "scores": {"logical_emotional": -10}},
+            {"label": "Balance logic and emotions", "scores": {"logical_emotional": 4}},
+            {"label": "Ask others for advice", "scores": {"introversion_extroversion": 6}},
+            {"label": "Decide quickly and adapt later", "scores": {"risk_level": 8}},
         ],
     ),
+
     scale_question(
         22,
         "Decision Making",
-        "How much do you rely on logic vs emotion? (1–10 scale)",
-        {"logical_emotional": {"direction": 1, "weight": 16}, "planning_spontaneity": {"direction": 1, "weight": 4}},
-        "Emotion",
-        "Logic",
+        "How much do emotions influence your decisions? (1–10 scale)",
+        {
+            "logical_emotional": {"direction": -1, "weight": 16}
+        },
+        "Not at all",
+        "Very strongly",
     ),
+
     radio_question(
         23,
         "Decision Making",
-        "Do you often second-guess your decisions?",
+        "After making a wrong decision, what do you usually do?",
         [
-            {"label": "Yes, I do", "scores": {"logical_emotional": 4, "planning_spontaneity": 6}},
-            {"label": "No, I don’t", "scores": {"logical_emotional": 6, "planning_spontaneity": -2}},
+            {"label": "Analyze and learn from it", "scores": {"logical_emotional": 12}},
+            {"label": "Move on quickly", "scores": {"risk_level": 4}},
+            {"label": "Feel regret for a long time", "scores": {"logical_emotional": -10}},
+            {"label": "Seek support from others", "scores": {"introversion_extroversion": 6}},
+            {"label": "Try to fix the mistake immediately", "scores": {"planning_spontaneity": 6}},
         ],
     ),
-    scale_question(
+
+    radio_question(
         24,
         "Decision Making",
-        "When faced with a dilemma, do you seek others' opinions? (1–10 scale)",
-        {"introversion_extroversion": {"direction": 1, "weight": 8}, "planning_spontaneity": {"direction": 1, "weight": 4}},
-        "Rarely",
-        "Very often",
-    ),
-    radio_question(
-        25,
-        "Decision Making",
-        "How do you handle making a wrong decision?",
+        "When faced with uncertainty, what do you trust more?",
         [
-            {"label": "Analyze and learn from it", "scores": {"logical_emotional": 10, "planning_spontaneity": 8}},
-            {"label": "Accept and move on quickly", "scores": {"planning_spontaneity": -6, "risk_level": 2}},
-            {"label": "Feel regret for a long time", "scores": {"logical_emotional": -10, "planning_spontaneity": 2}},
-            {"label": "Try to reverse the decision", "scores": {"planning_spontaneity": 8, "risk_level": -2}},
-            {"label": "Seek support from others", "scores": {"introversion_extroversion": 6, "planning_spontaneity": 2}},
+            {"label": "Logic and evidence", "scores": {"logical_emotional": 14}},
+            {"label": "Past experiences", "scores": {"planning_spontaneity": 8}},
+            {"label": "Instinct and emotions", "scores": {"logical_emotional": -10}},
+            {"label": "Advice from trusted people", "scores": {"introversion_extroversion": 6}},
+            {"label": "Immediate action", "scores": {"risk_level": 8}},
         ],
     ),
+
+    scale_question(
+        25,
+        "Decision Making",
+        "How confident are you in your own decisions? (1–10 scale)",
+        {
+            "logical_emotional": {"direction": 1, "weight": 8},
+            "risk_level": {"direction": 1, "weight": 6}
+        },
+        "Not confident",
+        "Very confident",
+    ),
+
 ]
 
 
@@ -529,6 +623,129 @@ def reset() -> str:
     return redirect(url_for("home"))
 
 
+@app.route("/ai-insights")
+def ai_insights():
+
+    profile = session.get("profile")
+
+    if not profile:
+        return jsonify({
+            "result": "No profile found."
+        })
+
+    prompt = f"""
+Analyze this Digital Twin personality profile.
+
+Archetype:
+{profile['archetype']}
+
+Summary:
+{profile['summary']}
+
+Return the response in clean HTML format using:
+
+<h2>
+<h3>
+<p>
+<ul>
+<li>
+
+Sections:
+1. Personality Style
+2. Strengths
+3. Weaknesses
+4. Career Tendencies
+5. Social Behavior
+6. Decision-Making Style
+7. Final Verdict
+
+Keep it elegant and professional.
+Write it within 200 words.
+"""
+
+    try:
+
+        response = client.models.generate_content(
+            model="gemini-3-flash-preview",
+            contents=prompt
+        )
+
+        return jsonify({
+            "result": response.text
+        })
+
+    except Exception as e:
+
+        return jsonify({
+            "result": str(e)
+        })
+
+@app.route("/simulate-scenario")
+def simulate_scenario():
+
+    profile = session.get("profile")
+
+    if not profile:
+        return jsonify({
+            "result": "No profile found."
+        })
+
+    scenario = request.args.get("scenario")
+
+    prompt = f"""
+
+You are an AI behavioral analyst.
+
+User Archetype:
+{profile['archetype']}
+
+Behavior Summary:
+{profile['summary']}
+
+Simulate how this person would behave in this situation:
+
+{scenario}
+
+Explain in very simple and clear language
+that normal people can easily understand.
+
+Return response in clean HTML using:
+<h2>
+<h3>
+<p>
+<ul>
+<li>
+
+Include:
+1. Emotional Response
+2. Thinking Pattern
+3. Likely Actions
+4. Social Behavior
+5. Predicted Outcome
+
+Keep the tone smart, modern, and human-friendly.
+Avoid futuristic or robotic words.
+Limit to 180 words.
+"""
+
+    try:
+
+        response = client.models.generate_content(
+            model="gemini-3-flash-preview",
+            contents=prompt
+        )
+
+        return jsonify({
+            "result": response.text
+        })
+
+    except Exception as e:
+
+        return jsonify({
+            "result": str(e)
+        })
+    
+    
 if __name__ == "__main__":
     debug = os.getenv("FLASK_DEBUG", "1").strip().lower() in {"1", "true", "yes", "on"}
     try:

@@ -1,61 +1,272 @@
 {% extends "base.html" %}
-{% block title %}Digital Twin of Yourself | Home{% endblock %}
+
+{% block title %}
+Your Twin | Home
+{% endblock %}
 
 {% block content %}
+
 <section class="hero">
+
     <div class="container hero-grid">
+
         <div class="hero-copy reveal">
-            <div class="hero-badge"><i class="fa-solid fa-microchip"></i> Twin Lab Protocol</div>
-            <h1>Digital Twin of Yourself</h1>
-            <p class="hero-tagline">Simulate Decisions. Visualize Your Behavioral Signal.</p>
-            <p class="hero-text">Step into a lab-grade interface that maps habits, values, uncertainty tolerance, and social dynamics into a futuristic Digital Twin intelligence profile.</p>
+
+            <div class="hero-badge">
+                <i class="fa-solid fa-brain"></i>
+                Cognitive Digital Twin System
+            </div>
+
+            <h1>
+                Meet Your Twin
+            </h1>
+
+            <p class="hero-tagline">
+                Analyze Behavior. Simulate Decisions. Predict Reactions.
+            </p>
+
+            <p class="hero-text">
+                Your Twin is an AI-powered behavioral simulation platform
+                that creates a cognitive Digital Twin of your personality
+                using psychological analysis, decision intelligence,
+                emotional mapping, and future scenario prediction.
+            </p>
+
             <div class="hero-actions">
-                <a class="primary-btn pulse" href="{{ url_for('assessment') }}">Start Assessment</a>
-                <a class="secondary-btn" href="{{ url_for('overview') }}">Explore Concept</a>
+
+                <a class="primary-btn pulse"
+                   href="{{ url_for('assessment') }}">
+
+                    Begin Twin Analysis
+
+                </a>
+
+                <a class="secondary-btn"
+                   href="{{ url_for('overview') }}">
+
+                    Explore System
+
+                </a>
+
             </div>
+
             <div class="hero-stats">
+
                 <div class="mini-stat glass-card">
+
                     <strong>25</strong>
-                    <span>Assessment Questions</span>
+
+                    <span>
+                        Cognitive Assessment Questions
+                    </span>
+
                 </div>
+
                 <div class="mini-stat glass-card">
+
                     <strong>4</strong>
-                    <span>Core Behavioral Dimensions</span>
+
+                    <span>
+                        Behavioral Intelligence Dimensions
+                    </span>
+
                 </div>
+
                 <div class="mini-stat glass-card">
-                    <strong>100%</strong>
-                    <span>Responsive Premium UI</span>
+
+                    <strong>AI</strong>
+
+                    <span>
+                        Scenario Simulation Engine
+                    </span>
+
                 </div>
+
             </div>
+
         </div>
 
         <div class="hero-visual reveal">
-            <img src="{{ url_for('static', filename='img/hero.png') }}" class="hero-img" alt="Digital Twin Lab visual">
+
+            <img src="{{ url_for('static',
+                    filename='img/hero.png') }}"
+                 class="hero-img"
+                 alt="Digital Twin Interface">
+
         </div>
+
     </div>
 
 </section>
 
 <section class="container section-pad">
+
     <div class="section-heading reveal">
-        <span class="eyebrow">Why this project stands out</span>
+
+        <span class="eyebrow">
+            Why Your Twin Feels Different
+        </span>
+
+        <h2>
+            Beyond Traditional Personality Tests
+        </h2>
+
     </div>
+
     <div class="feature-grid">
+
         <article class="glass-card feature-card reveal">
-            <i class="fa-solid fa-layer-group"></i>
-            <h3>Command center flow</h3>
-            <p>Move through concept, methodology, assessment, dashboard, and scenario panels with one coherent mission-control UI.</p>
+
+            <i class="fa-solid fa-brain"></i>
+
+            <h3>
+                Cognitive Intelligence Mapping
+            </h3>
+
+            <p>
+                Your Twin analyzes emotional patterns,
+                decision-making behavior,
+                social interaction,
+                and risk adaptability
+                to build a dynamic personality model.
+            </p>
+
         </article>
+
         <article class="glass-card feature-card reveal">
+
             <i class="fa-solid fa-chart-line"></i>
-            <h3>Behavioral signal mapping</h3>
-            <p>Every response updates core dimensions like social energy, risk posture, reasoning style, and planning intensity.</p>
+
+            <h3>
+                Behavioral Signal Analysis
+            </h3>
+
+            <p>
+                Every response contributes to
+                real-time behavioral dimensions
+                including logic orientation,
+                planning style,
+                confidence,
+                and emotional regulation.
+            </p>
+
         </article>
+
         <article class="glass-card feature-card reveal">
-            <i class="fa-solid fa-satellite-dish"></i>
-            <h3>Lab-grade visual system</h3>
-            <p>Technical overlays, luminous accents, and purposeful motion build a distinctive digital twin laboratory experience.</p>
+
+            <i class="fa-solid fa-microchip"></i>
+
+            <h3>
+                AI Interpretation Engine
+            </h3>
+
+            <p>
+                Large Language Models transform
+                behavioral signals into
+                human-readable personality insights
+                and intelligent cognitive explanations.
+            </p>
+
         </article>
+
+        <article class="glass-card feature-card reveal">
+
+            <i class="fa-solid fa-satellite-dish"></i>
+
+            <h3>
+                Future Scenario Simulation
+            </h3>
+
+            <p>
+                Simulate how your Digital Twin reacts
+                under uncertainty,
+                leadership pressure,
+                emotional conflict,
+                and high-risk real-world situations.
+            </p>
+
+        </article>
+
     </div>
+
 </section>
+
+<section class="container section-pad">
+
+    <div class="glass-card reveal"
+         style="padding:50px;">
+
+        <div class="section-heading">
+
+            <span class="eyebrow">
+                Twin Intelligence Pipeline
+            </span>
+
+            <h2>
+                How The System Works
+            </h2>
+
+        </div>
+
+        <div class="card-band">
+
+            <div class="band-item glass-card">
+
+                <span class="band-number">
+                    01
+                </span>
+
+                <h4>
+                    Behavioral Input
+                </h4>
+
+                <p>
+                    The system captures
+                    cognitive and emotional signals
+                    through scenario-based questions.
+                </p>
+
+            </div>
+
+            <div class="band-item glass-card">
+
+                <span class="band-number">
+                    02
+                </span>
+
+                <h4>
+                    Twin Generation
+                </h4>
+
+                <p>
+                    AI models synthesize behavioral
+                    dimensions into a Digital Twin profile.
+                </p>
+
+            </div>
+
+            <div class="band-item glass-card">
+
+                <span class="band-number">
+                    03
+                </span>
+
+                <h4>
+                    AI Simulation
+                </h4>
+
+                <p>
+                    The platform predicts future reactions,
+                    emotional responses,
+                    and decision-making behavior.
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
 {% endblock %}

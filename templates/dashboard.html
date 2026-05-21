@@ -19,11 +19,56 @@
             <span>{{ profile.labels.planning_spontaneity }}</span>
         </div>
         <p class="recommendation">{{ profile.recommendation }}</p>
+
+<button class="ai-btn" onclick="getAIInsights()">
+    <span class="ai-glow"></span>
+    <span class="ai-text">Explain My Digital Twin</span>
+</button>
+<div id="ai-result" class="ai-report-card"></div>
+
     </article>
 
     <article class="glass-card chart-panel reveal">
         <h3>Behavioral radar</h3>
         <canvas id="radarChart" height="280"></canvas>
+        <div class="graph-insights glass-card">
+    <div class="graph-header">
+        <span class="graph-pulse"></span>
+        <h4>Twin Intelligence Analysis</h4>
+    </div>
+
+    <div class="insight-list">
+
+        <div class="insight-item">
+            <span class="insight-dot"></span>
+            <p>
+                High logical dominance detected in behavioral mapping.
+            </p>
+        </div>
+
+        <div class="insight-item">
+            <span class="insight-dot"></span>
+            <p>
+                Moderate adaptability under uncertain conditions.
+            </p>
+        </div>
+
+        <div class="insight-item">
+            <span class="insight-dot"></span>
+            <p>
+                Stable emotional calibration with analytical bias.
+            </p>
+        </div>
+
+        <div class="insight-item">
+            <span class="insight-dot"></span>
+            <p>
+                Strategic decision-making pattern identified.
+            </p>
+        </div>
+
+    </div>
+</div>
     </article>
 
     <article class="glass-card chart-panel reveal">
@@ -46,4 +91,27 @@
 <script id="profile-data" type="application/json">{{ profile|tojson }}</script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+<script>
+async function getAIInsights() {
+
+    try {
+
+        document.getElementById("ai-result").innerHTML =
+            "Generating AI insights...";
+
+        const response = await fetch("/ai-insights");
+
+        const data = await response.json();
+
+        document.getElementById('ai-result').innerHTML =
+    data.result;
+    } catch(error) {
+
+        console.log(error);
+
+        document.getElementById("ai-result").innerHTML =
+            "Error generating AI insights.";
+    }
+}
+</script>
 {% endblock %}
